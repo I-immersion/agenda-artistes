@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LUMIIA · Agenda Artistes — v2.2 -->
+<!-- LUMIIA · Agenda Artistes — v2.3 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -48,7 +48,7 @@
   .sw{width:14px;height:14px;border-radius:4px;border:1px solid}
   .sw.free{background:rgba(52,211,153,.2);border-color:var(--green)}
   .sw.taken{background:rgba(251,113,133,.18);border-color:var(--red)}
-  .sw.mine{background:rgba(52,211,153,.2);border-color:var(--green);box-shadow:0 0 0 2px var(--cyan) inset}
+  .sw.mine{background:rgba(251,191,36,.24);border-color:var(--amber)}
 
   /* Calendrier */
   .cal{margin-bottom:24px}
@@ -56,7 +56,7 @@
   .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
   .dow{font-size:.62rem;color:var(--muted);text-align:center;padding-bottom:3px;text-transform:uppercase;letter-spacing:.3px}
   .cell{min-height:56px;border-radius:10px;padding:5px 4px;display:flex;flex-direction:column;gap:2px;
-    background:var(--bg2);border:1px solid transparent;transition:.12s;overflow:hidden}
+    background:var(--bg2);border:1px solid transparent;transition:.12s;overflow:hidden;position:relative}
   .cell.blank{background:transparent}
   .cell .num{font-size:.74rem;font-weight:700;color:var(--muted)}
   .cell.day .num{color:var(--ink)}
@@ -65,12 +65,13 @@
   .cell.free:hover{background:rgba(52,211,153,.28)}
   .cell.taken{background:rgba(251,113,133,.14);border-color:rgba(251,113,133,.45)}
   .cell.taken .num{color:var(--red)}
-  .cell.mine{background:rgba(52,211,153,.18);border:2px solid var(--cyan);cursor:pointer}
-  .cell.mine .num{color:var(--green)}
+  .cell.mine{background:rgba(251,191,36,.24);border:1px solid var(--amber);cursor:pointer}
+  .cell.mine .num{color:var(--amber)}
   .cell.closed{background:var(--bg2);border:1px dashed var(--line);cursor:pointer}
   .cell.closed:hover{border-color:var(--violet)}
   .cell .tag{font-size:.58rem;line-height:1.05;font-weight:700;margin-top:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .cell .tag.g{color:var(--green)} .cell .tag.r{color:var(--red)} .cell .tag.m{color:var(--cyan)} .cell .tag.x{color:var(--muted)}
+  .cell .tag.g{color:var(--green)} .cell .tag.r{color:var(--red)} .cell .tag.m{color:var(--amber)} .cell .tag.x{color:var(--muted)}
+  .cell .memo{position:absolute;top:2px;right:3px;font-size:.62rem;line-height:1;filter:saturate(1.3)}
 
   .empty{text-align:center;color:var(--muted);padding:48px 20px;font-size:.95rem;line-height:1.5}
   .empty .big{font-size:2rem;margin-bottom:10px}
@@ -191,7 +192,7 @@ const firebaseConfig = {
   appId: "1:823919513931:web:6f6f3c7c6d1699457b18ce"
 };
 
-const VERSION = "v2.2";
+const VERSION = "v2.3";
 const ROOT = "agenda_artistes";
 
 const app = initializeApp(firebaseConfig);
@@ -275,7 +276,8 @@ function downloadICS(ymd, djId){
   const blob=new Blob([buildICS(ymd,djId)],{type:"text/calendar;charset=utf-8"});
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a"); a.href=url; a.download=`lumiia-${ymd}.ics`;
-  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); }, 1500); // Firefox : garder l'URL le temps du téléchargement
 }
 
 let toastT;
@@ -307,14 +309,15 @@ function calHTML(monthIdx, mode){
 
 function cellHTML(ymd, day, creneau, open, occ, mode){
   const num=`<div class="num">${day}</div>`;
+  const memo = DATA.observations[ymd] ? `<span class="memo" title="Remarque notée">📝</span>` : "";
   if(mode==="dj"){
     if(creneau && open){
       if(pending.has(ymd)) return `<div class="cell pending">${num}<div class="tag">⏳…</div></div>`;
       if(occ){
-        if(occ===myDjId) return `<div class="cell mine" data-action="open" data-date="${ymd}">${num}<div class="tag m">Toi 🎧</div></div>`;
-        return `<div class="cell taken" data-action="open" data-date="${ymd}">${num}<div class="tag r">${esc(djNom(occ))}</div></div>`;
+        if(occ===myDjId) return `<div class="cell mine" data-action="open" data-date="${ymd}">${num}${memo}<div class="tag m">Toi 🎧</div></div>`;
+        return `<div class="cell taken" data-action="open" data-date="${ymd}">${num}${memo}<div class="tag r">${esc(djNom(occ))}</div></div>`;
       }
-      return `<div class="cell free" data-action="open" data-date="${ymd}">${num}<div class="tag g">Libre</div></div>`;
+      return `<div class="cell free" data-action="open" data-date="${ymd}">${num}${memo}<div class="tag g">Libre</div></div>`;
     }
     return `<div class="cell day">${num}</div>`;
   }
@@ -322,7 +325,7 @@ function cellHTML(ymd, day, creneau, open, occ, mode){
   if(creneau){
     if(open){
       const tag = occ ? `<div class="tag r">${esc(djNom(occ))}</div>` : `<div class="tag g">ouverte</div>`;
-      return `<div class="cell ${occ?"taken":"free"}" data-action="adm" data-date="${ymd}">${num}${tag}</div>`;
+      return `<div class="cell ${occ?"taken":"free"}" data-action="adm" data-date="${ymd}">${num}${memo}${tag}</div>`;
     }
     return `<div class="cell closed" data-action="adm" data-date="${ymd}">${num}<div class="tag x">fermée</div></div>`;
   }
@@ -397,11 +400,15 @@ function openDatePopup(ymd){
     body+=`<p class="stat r">🔴 Réservée par ${esc(djNom(occ))}</p>`;
     if(DATA.observations[ymd]) body+=`<p class="note" style="margin:0 0 12px">« ${esc(DATA.observations[ymd])} »</p>`;
   }
-  body+=`<div class="row" style="margin-top:10px"><button class="b-close" id="popClose">Fermer</button></div>`;
+  body+=`<div class="row" style="margin-top:10px"><button class="b-close" id="popClose">Valider</button></div>`;
   sheet.innerHTML=body;
   document.getElementById("modal").classList.add("show");
 
-  document.getElementById("popClose").addEventListener("click",closePopup);
+  document.getElementById("popClose").addEventListener("click",()=>{
+    const t=sheet.querySelector("#popObs");
+    if(t){ const val=t.value.trim(); val ? fbSet(`observations/${ymd}`,val) : fbRemove(`observations/${ymd}`); }
+    closePopup();
+  });
   const go=sheet.querySelector("[data-go]");
   if(go) go.addEventListener("click",()=>{
     const d=go.dataset.go;
