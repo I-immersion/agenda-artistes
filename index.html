@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LUMIIA · Agenda Artistes — v2.4 -->
+<!-- LUMIIA · Agenda Artistes — v2.5 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -161,6 +161,8 @@
   .b-go{background:var(--green);color:#04210f} .b-ics{background:rgba(34,211,238,.16);color:var(--cyan);border:1px solid rgba(34,211,238,.5)!important}
   .b-free{background:rgba(251,113,133,.16);color:var(--red);border:1px solid rgba(251,113,133,.5)!important}
   .b-close{background:var(--card2);color:var(--muted)}
+  .sheet .popnote{background:var(--bg2);border:1px solid var(--amber);border-radius:10px;padding:10px 12px;
+    margin:0 0 14px;color:var(--ink);font-size:.9rem;line-height:1.4;white-space:pre-wrap}
 </style>
 </head>
 <body>
@@ -192,7 +194,7 @@ const firebaseConfig = {
   appId: "1:823919513931:web:6f6f3c7c6d1699457b18ce"
 };
 
-const VERSION = "v2.4";
+const VERSION = "v2.5";
 const ROOT = "agenda_artistes";
 
 const app = initializeApp(firebaseConfig);
@@ -206,6 +208,7 @@ let DATA = { djs:{}, dates:{}, inscriptions:{}, observations:{}, obsGen:"" };
 let myDjId = localStorage.getItem("agenda_artistes_me") || "";
 let viewMode = "dj";          // "dj" | "admin"
 let pending = new Set();      // dates en cours d'enregistrement (affichage orange)
+let popIcsUrl = null;         // URL blob du .ics affiché dans la popup (à révoquer)
 let user = null;              // utilisateur Firebase connecté
 let loginErr = "";
 
@@ -272,9 +275,9 @@ function buildICS(ymd, djId){
     "END:VEVENT","END:VCALENDAR"
   ].join("\r\n");
 }
-// Lien de téléchargement natif (fiable sur tous les navigateurs, Firefox inclus)
-function icsHref(ymd, djId){
-  return "data:text/calendar;charset=utf-8," + encodeURIComponent(buildICS(ymd, djId));
+// Lien de téléchargement via blob: (cliqué nativement → fiable Firefox/Chrome/Safari)
+function icsBlobUrl(ymd, djId){
+  return URL.createObjectURL(new Blob([buildICS(ymd, djId)], {type:"text/calendar;charset=utf-8"}));
 }
 
 let toastT;
@@ -381,21 +384,22 @@ function bindDj(){
 function openDatePopup(ymd){
   const occ=DATA.inscriptions[ymd];
   const sheet=document.getElementById("sheet");
+  const note = DATA.observations[ymd] ? `<p class="note popnote">📝 « ${esc(DATA.observations[ymd])} »</p>` : "";
   let body=`<h3>${fmtDateLong(ymd)}</h3>`;
 
   if(!occ){
-    body+=`<p class="stat free">✅ Date libre</p>
+    body+=`<p class="stat free">✅ Date libre</p>${note}
       <div class="row"><button class="b-go" data-go="${ymd}">🎧 M'inscrire sur cette date</button></div>`;
   } else if(occ===myDjId){
+    popIcsUrl = icsBlobUrl(ymd, myDjId);
     body+=`<p class="stat m">🎧 Tu joues ce soir-là</p>
       <textarea id="popObs" placeholder="Une remarque (style, matériel, horaire…)">${esc(DATA.observations[ymd]||"")}</textarea>
       <div class="row">
-        <a class="b-ics" href="${icsHref(ymd,myDjId)}" download="lumiia-${ymd}.ics">📅 Mon agenda (.ics)</a>
+        <a class="b-ics" href="${popIcsUrl}" download="lumiia-${ymd}.ics">📅 Mon agenda (.ics)</a>
         <button class="b-free" data-free="${ymd}">Me désinscrire</button>
       </div>`;
   } else {
-    body+=`<p class="stat r">🔴 Réservée par ${esc(djNom(occ))}</p>`;
-    if(DATA.observations[ymd]) body+=`<p class="note" style="margin:0 0 12px">« ${esc(DATA.observations[ymd])} »</p>`;
+    body+=`<p class="stat r">🔴 Réservée par ${esc(djNom(occ))}</p>${note}`;
   }
   body+=`<div class="row" style="margin-top:10px"><button class="b-close" id="popClose">Valider</button></div>`;
   sheet.innerHTML=body;
@@ -426,7 +430,7 @@ function openDatePopup(ymd){
     toast("Remarque enregistrée");
   });
 }
-function closePopup(){ document.getElementById("modal").classList.remove("show"); }
+function closePopup(){ document.getElementById("modal").classList.remove("show"); if(popIcsUrl){ URL.revokeObjectURL(popIcsUrl); popIcsUrl=null; } }
 document.getElementById("modal").addEventListener("click",e=>{ if(e.target.id==="modal") closePopup(); });
 
 // ---------- Vue Admin ----------
@@ -457,7 +461,7 @@ function renderAdmin(){
       html+=`<div class="daterow">
         <span class="dd">${fmtDateLong(d)}<small>${occ?"":"libre"}</small></span>
         <span class="who2 ${occ?"":"libre"}">${occ?esc(djNom(occ)):"—"}</span>
-        ${occ?`<a class="btn-ics" href="${icsHref(d,occ)}" download="lumiia-${d}.ics">📅 .ics</a>`:""}
+        ${occ?`<a class="btn-ics" href="${icsBlobUrl(d,occ)}" download="lumiia-${d}.ics">📅 .ics</a>`:""}
         <textarea class="obs" data-obs="${d}" placeholder="Observation sur cette date">${esc(DATA.observations[d]||"")}</textarea>
       </div>`;
     }
