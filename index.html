@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LUMIIA · Agenda Artistes — v2.6 -->
+<!-- LUMIIA · Agenda Artistes — v2.7 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -116,8 +116,6 @@
   .daterow .who2{font-size:.8rem;color:var(--cyan);font-weight:600}
   .daterow .who2.libre{color:var(--green)}
   .daterow textarea.obs{flex-basis:100%}
-  .btn-ics{background:rgba(34,211,238,.14);color:var(--cyan);border:1px solid rgba(34,211,238,.45);border-radius:9px;padding:8px 12px;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block}
-  .btn-ics:hover{background:rgba(34,211,238,.25)}
   .sendbar{position:sticky;bottom:0;margin:22px -16px -90px;padding:14px 16px calc(14px + env(safe-area-inset-bottom));
     background:linear-gradient(0deg,var(--bg) 60%,transparent);}
   .btn-send{width:100%;max-width:520px;margin:0 auto;display:block;background:var(--violet);color:#fff;border:0;
@@ -158,7 +156,7 @@
     padding:11px;font-size:.95rem;font-family:inherit;resize:vertical;min-height:60px;margin-bottom:14px}
   .sheet .row{display:flex;gap:10px;flex-wrap:wrap}
   .sheet .row button,.sheet .row a{flex:1;min-width:120px;border:0;border-radius:11px;padding:14px;font-size:.98rem;font-weight:800;cursor:pointer;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center}
-  .b-go{background:var(--green);color:#04210f} .b-ics{background:rgba(34,211,238,.16);color:var(--cyan);border:1px solid rgba(34,211,238,.5)!important}
+  .b-go{background:var(--green);color:#04210f}
   .b-free{background:rgba(251,113,133,.16);color:var(--red);border:1px solid rgba(251,113,133,.5)!important}
   .b-close{background:var(--card2);color:var(--muted)}
   .sheet .popnote{background:var(--bg2);border:1px solid var(--amber);border-radius:10px;padding:10px 12px;
@@ -169,7 +167,7 @@
 <header>
   <div class="bar">
     <img class="logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9Ijk2IiBmaWxsPSIjMGIwYTFmIi8+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIxNTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhiNWNmNiIgc3Ryb2tlLXdpZHRoPSIyMiIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iNTQiIGZpbGw9IiMyMmQzZWUiLz48Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjIwIiBmaWxsPSIjMGIwYTFmIi8+PC9zdmc+" alt="">
-    <h1>Soirées DJ<small>LUMIIA · Été 2026 · <span class="ver" id="ver">v2.6</span></small></h1>
+    <h1>Soirées DJ<small>LUMIIA · Été 2026 · <span class="ver" id="ver">v2.7</span></small></h1>
     <span class="conn" id="conn" title="État de la connexion"><i class="dotc"></i><span id="connTxt">…</span></span>
     <button class="gear" id="gear" title="Espace organisateur">⚙</button>
   </div>
@@ -194,7 +192,7 @@ const firebaseConfig = {
   appId: "1:823919513931:web:6f6f3c7c6d1699457b18ce"
 };
 
-const VERSION = "v2.6";
+const VERSION = "v2.7";
 const ROOT = "agenda_artistes";
 
 const app = initializeApp(firebaseConfig);
@@ -358,7 +356,8 @@ function bindDj(){
 function openDatePopup(ymd){
   const occ=DATA.inscriptions[ymd];
   const sheet=document.getElementById("sheet");
-  const note = DATA.observations[ymd] ? `<p class="note popnote">📝 « ${esc(DATA.observations[ymd])} »</p>` : "";
+  const qui = occ ? esc(djNom(occ))+" : " : "";
+  const note = DATA.observations[ymd] ? `<p class="note popnote">📝 ${qui}« ${esc(DATA.observations[ymd])} »</p>` : "";
   let body=`<h3>${fmtDateLong(ymd)}</h3>`;
 
   if(!occ){
@@ -424,16 +423,21 @@ function renderAdmin(){
   html+=`<p class="note">📅 Touche une date (mardi · jeudi · samedi) pour l'<b>ouvrir</b> ou la <b>fermer</b> aux artistes. Vert = libre · Rouge = réservée (avec le nom).</p>`;
   html+=calHTML(6,"admin")+calHTML(7,"admin");
 
-  // Détail des dates ouvertes : observation + .ics
-  const ouvertes=Object.keys(DATA.dates).filter(d=>DATA.dates[d]).sort();
-  if(ouvertes.length){
-    html+=`<div class="sectit">🗒️ Dates ouvertes — observations & agenda</div><div class="adminbox">`;
-    for(const d of ouvertes){
+  // Observations : dates ouvertes + toute date portant déjà un commentaire
+  const ouvertes=Object.keys(DATA.dates).filter(d=>DATA.dates[d]);
+  const aGerer=[...new Set([...ouvertes, ...Object.keys(DATA.observations)])].sort();
+  if(aGerer.length){
+    html+=`<div class="sectit">🗒️ Observations des dates</div>
+      <p class="note" style="margin:0 0 8px">Tu peux créer, modifier ou effacer le commentaire de chaque date.</p>
+      <div class="adminbox">`;
+    for(const d of aGerer){
       const occ=DATA.inscriptions[d];
+      const etat = occ ? esc(djNom(occ)) : (DATA.dates[d] ? "libre" : "date fermée");
       html+=`<div class="daterow">
-        <span class="dd">${fmtDateLong(d)}<small>${occ?"":"libre"}</small></span>
-        <span class="who2 ${occ?"":"libre"}">${occ?esc(djNom(occ)):"—"}</span>
-        <textarea class="obs" data-obs="${d}" placeholder="Observation sur cette date">${esc(DATA.observations[d]||"")}</textarea>
+        <span class="dd">${fmtDateLong(d)}<small>${occ?"réservée":(DATA.dates[d]?"libre":"fermée")}</small></span>
+        <span class="who2 ${occ?"":"libre"}">${etat}</span>
+        <textarea class="obs" data-obs="${d}" placeholder="Commentaire sur cette date">${esc(DATA.observations[d]||"")}</textarea>
+        ${DATA.observations[d]?`<button class="ghost danger" data-clearobs="${d}">✕ Effacer</button>`:""}
       </div>`;
     }
     html+=`</div>`;
@@ -474,6 +478,9 @@ function bindAdmin(){
     const d=t.dataset.obs, val=t.value.trim();
     val ? fbSet(`observations/${d}`,val) : fbRemove(`observations/${d}`);
     toast("Observation enregistrée");
+  }));
+  appEl.querySelectorAll("[data-clearobs]").forEach(b=>b.addEventListener("click",()=>{
+    fbRemove(`observations/${b.dataset.clearobs}`); toast("Commentaire effacé");
   }));
   const add=document.getElementById("adddj");
   if(add) add.addEventListener("click",()=>{
