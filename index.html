@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LUMIIA · Agenda Artistes — v2.0 -->
+<!-- LUMIIA · Agenda Artistes — v2.1 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -102,6 +102,27 @@
     font-weight:600;opacity:0;transition:.25s;z-index:60;box-shadow:0 10px 40px rgba(0,0,0,.5);max-width:90vw;text-align:center}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .loading{text-align:center;color:var(--muted);padding:60px 0}
+
+  /* Observations + détails de dates (v2.1) */
+  .obsgen{background:var(--card);border:1px solid var(--amber);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+  .obsgen .lbl{font-size:.72rem;color:var(--amber);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .obsgen .txt{font-size:.9rem;color:var(--ink);white-space:pre-wrap;line-height:1.4}
+  textarea.obs{width:100%;background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:.88rem;font-family:inherit;resize:vertical;min-height:42px}
+  .daterow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .daterow:last-child{border-bottom:0}
+  .daterow .dd{font-weight:700;font-size:.92rem;flex:1;min-width:140px;text-transform:capitalize}
+  .daterow .dd small{display:block;font-weight:400;font-size:.76rem;color:var(--muted)}
+  .daterow .who2{font-size:.8rem;color:var(--cyan);font-weight:600}
+  .daterow .who2.libre{color:var(--green)}
+  .daterow textarea.obs{flex-basis:100%}
+  .btn-ics{background:rgba(34,211,238,.14);color:var(--cyan);border:1px solid rgba(34,211,238,.45);border-radius:9px;padding:8px 12px;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap}
+  .btn-ics:hover{background:rgba(34,211,238,.25)}
+  .sendbar{position:sticky;bottom:0;margin:22px -16px -90px;padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+    background:linear-gradient(0deg,var(--bg) 60%,transparent);}
+  .btn-send{width:100%;max-width:520px;margin:0 auto;display:block;background:var(--violet);color:#fff;border:0;
+    border-radius:12px;padding:15px;font-size:1rem;font-weight:800;cursor:pointer;box-shadow:0 6px 24px rgba(139,92,246,.4)}
+  .btn-send:disabled{opacity:.4;cursor:default;box-shadow:none}
+  .sectit{font-size:.95rem;margin:20px 2px 8px;color:var(--ink);font-weight:700}
 </style>
 </head>
 <body>
@@ -132,7 +153,7 @@ const firebaseConfig = {
   appId: "1:823919513931:web:6f6f3c7c6d1699457b18ce"
 };
 
-const VERSION = "v2.0";
+const VERSION = "v2.1";
 const ROOT = "agenda_artistes";
 
 const app = initializeApp(firebaseConfig);
@@ -142,7 +163,7 @@ const auth = getAuth(app);
 document.getElementById("ver").textContent = VERSION;
 
 // État
-let DATA = { djs:{}, dates:{}, inscriptions:{} };
+let DATA = { djs:{}, dates:{}, inscriptions:{}, observations:{}, obsGen:"" };
 let myDjId = localStorage.getItem("agenda_artistes_me") || "";
 let viewMode = "dj";          // "dj" | "admin"
 let user = null;              // utilisateur Firebase connecté
@@ -169,6 +190,7 @@ onAuthStateChanged(auth, u=>{
 onValue(ref(db, ROOT), snap=>{
   const v = snap.val() || {};
   DATA.djs = v.djs || {}; DATA.dates = v.dates || {}; DATA.inscriptions = v.inscriptions || {};
+  DATA.observations = v.observations || {}; DATA.obsGen = v.observation_generale || "";
   render();
 }, err=>{
   appEl.innerHTML = `<div class="empty"><div class="big">⚠️</div>Firebase refuse la lecture.<br>Vérifie que la règle <b>agenda_artistes</b> est publiée.<br><small style="opacity:.7">${esc(err.message)}</small></div>`;
@@ -184,6 +206,49 @@ const SOIREES=[2,4,6]; // mardi, jeudi, samedi
 function estCreneau(dow){ return SOIREES.includes(dow); }
 function djNom(id){ return DATA.djs[id] || "?"; }
 function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+const JOURS=["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
+function fmtDateLong(ymd){ const [y,m,j]=ymd.split("-").map(Number); const d=new Date(y,m-1,j);
+  return `${JOURS[d.getDay()]} ${j} ${MOIS[m-1]} ${y}`; }
+
+// ---- Export .ics (soirée 21h → 01h, lieu LUMIIA) ----
+function buildICS(ymd, djId){
+  const [y,m,j]=ymd.split("-").map(Number);
+  const fin=new Date(y,m-1,j+1); // lendemain pour DTEND 01:00
+  const f=d=>`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;
+  const stamp=new Date().toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
+  const obs=(DATA.observations[ymd]||"").replace(/\n/g," ");
+  return [
+    "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//LUMIIA//Agenda Artistes//FR","CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT",
+    `UID:agenda-artistes-${ymd}-${djId}@lumiia.fr`,
+    `DTSTAMP:${stamp}`,
+    `DTSTART:${f(new Date(y,m-1,j))}T210000`,
+    `DTEND:${f(fin)}T010000`,
+    `SUMMARY:Soirée DJ LUMIIA — ${djNom(djId)}`,
+    `DESCRIPTION:${obs}`,
+    "LOCATION:LUMIIA, 1 route de Fontagnal, 26400 Aouste-sur-Sye",
+    "END:VEVENT","END:VCALENDAR"
+  ].join("\r\n");
+}
+function downloadICS(ymd, djId){
+  const blob=new Blob([buildICS(ymd,djId)],{type:"text/calendar;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download=`lumiia-${ymd}.ics`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+// ---- Mail récapitulatif (mailto prérempli) ----
+function envoyerMail(){
+  if(!myDjId){ toast("Choisis d'abord ton nom ☝"); return; }
+  const mesDates=Object.entries(DATA.inscriptions).filter(([d,id])=>id===myDjId).map(([d])=>d).sort();
+  if(!mesDates.length){ toast("Tu n'as encore réservé aucune date"); return; }
+  const nom=djNom(myDjId);
+  const lignes=mesDates.map(d=>{ const o=DATA.observations[d]; return "- "+fmtDateLong(d)+(o?` (${o})`:""); }).join("\n");
+  const body=`Bonjour,\n\nVoici mes dates pour les soirées DJ LUMIIA :\n\n${lignes}\n\nArtiste : ${nom}\nAgenda en ligne : https://i-immersion.github.io/agenda-artistes/\n`;
+  const subject=`Soirées DJ LUMIIA — dates de ${nom}`;
+  location.href=`mailto:contact@lumiia.fr?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
 
 let toastT;
 function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show");
@@ -248,12 +313,33 @@ function renderDj(){
     <span><i class="sw taken"></i>Réservée</span>
     <span><i class="sw mine"></i>Ta date</span></div>`;
 
+  if(DATA.obsGen) html+=`<div class="obsgen"><div class="lbl">📌 Infos organisateur</div><div class="txt">${esc(DATA.obsGen)}</div></div>`;
+
   const anyOpen=Object.keys(DATA.dates).length>0;
   if(!anyOpen){
     html+=`<div class="empty"><div class="big">🌙</div>Aucune soirée ouverte pour l'instant.<br>Reviens bientôt !</div>`;
   } else {
     html+=calHTML(6,"dj")+calHTML(7,"dj");
   }
+
+  // Mes dates : .ics + observation, visible si l'artiste a des réservations
+  const mesDates = myDjId ? Object.entries(DATA.inscriptions).filter(([d,id])=>id===myDjId).map(([d])=>d).sort() : [];
+  if(mesDates.length){
+    html+=`<div class="sectit">🎧 Mes dates</div><div class="adminbox" style="border-color:var(--cyan)">`;
+    for(const d of mesDates){
+      html+=`<div class="daterow">
+        <span class="dd">${fmtDateLong(d)}</span>
+        <button class="btn-ics" data-ics="${d}">📅 Mon agenda</button>
+        <textarea class="obs" data-obs="${d}" placeholder="Une remarque sur cette date (style, matériel…)">${esc(DATA.observations[d]||"")}</textarea>
+      </div>`;
+    }
+    html+=`</div>`;
+  }
+
+  if(myDjId){
+    html+=`<div class="sendbar"><button class="btn-send" id="sendBtn" ${mesDates.length?"":"disabled"}>✉️ Enregistrer mes dates et envoyer</button></div>`;
+  }
+
   appEl.innerHTML=html; bindDj();
 }
 
@@ -267,6 +353,14 @@ function bindDj(){
       fbSet(`inscriptions/${date}`,myDjId); toast("C'est noté 🎧"); }
     else if(a==="liberer"){ fbRemove(`inscriptions/${date}`); toast("Date libérée"); }
   }));
+  appEl.querySelectorAll("[data-ics]").forEach(b=>b.addEventListener("click",()=>downloadICS(b.dataset.ics, DATA.inscriptions[b.dataset.ics]||myDjId)));
+  appEl.querySelectorAll("textarea[data-obs]").forEach(t=>t.addEventListener("change",()=>{
+    const d=t.dataset.obs, val=t.value.trim();
+    val ? fbSet(`observations/${d}`,val) : fbRemove(`observations/${d}`);
+    toast("Observation enregistrée");
+  }));
+  const sb=document.getElementById("sendBtn");
+  if(sb) sb.addEventListener("click",envoyerMail);
 }
 
 // ---------- Vue Admin ----------
@@ -282,8 +376,28 @@ function renderAdmin(){
     <div class="addrow"><input id="newdj" placeholder="Nom de l'artiste" autocomplete="off">
       <button class="act" id="adddj">Ajouter</button></div></div>`;
 
+  html+=`<div class="adminbox"><h3>📌 Observation générale (visible par les artistes)</h3>
+    <textarea class="obs" id="obsGen" placeholder="Message affiché en haut pour tous les artistes (horaires, consignes…)">${esc(DATA.obsGen||"")}</textarea></div>`;
+
   html+=`<p class="note">📅 Touche une date (mardi · jeudi · samedi) pour l'<b>ouvrir</b> ou la <b>fermer</b> aux artistes. Vert = libre · Rouge = réservée (avec le nom).</p>`;
   html+=calHTML(6,"admin")+calHTML(7,"admin");
+
+  // Détail des dates ouvertes : observation + .ics
+  const ouvertes=Object.keys(DATA.dates).filter(d=>DATA.dates[d]).sort();
+  if(ouvertes.length){
+    html+=`<div class="sectit">🗒️ Dates ouvertes — observations & agenda</div><div class="adminbox">`;
+    for(const d of ouvertes){
+      const occ=DATA.inscriptions[d];
+      html+=`<div class="daterow">
+        <span class="dd">${fmtDateLong(d)}<small>${occ?"":"libre"}</small></span>
+        <span class="who2 ${occ?"":"libre"}">${occ?esc(djNom(occ)):"—"}</span>
+        ${occ?`<button class="btn-ics" data-ics="${d}">📅 .ics</button>`:""}
+        <textarea class="obs" data-obs="${d}" placeholder="Observation sur cette date">${esc(DATA.observations[d]||"")}</textarea>
+      </div>`;
+    }
+    html+=`</div>`;
+  }
+
   appEl.innerHTML=html; bindAdmin();
 }
 
@@ -309,6 +423,18 @@ function renderLogin(){
 
 function bindAdmin(){
   document.getElementById("logout").addEventListener("click",()=>signOut(auth));
+  const og=document.getElementById("obsGen");
+  if(og) og.addEventListener("change",()=>{
+    const val=og.value.trim();
+    val ? fbSet("observation_generale",val) : fbRemove("observation_generale");
+    toast("Observation générale enregistrée");
+  });
+  appEl.querySelectorAll("[data-ics]").forEach(b=>b.addEventListener("click",()=>downloadICS(b.dataset.ics, DATA.inscriptions[b.dataset.ics])));
+  appEl.querySelectorAll("textarea[data-obs]").forEach(t=>t.addEventListener("change",()=>{
+    const d=t.dataset.obs, val=t.value.trim();
+    val ? fbSet(`observations/${d}`,val) : fbRemove(`observations/${d}`);
+    toast("Observation enregistrée");
+  }));
   const add=document.getElementById("adddj");
   if(add) add.addEventListener("click",()=>{
     const inp=document.getElementById("newdj"); const nm=(inp.value||"").trim();
