@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LUMIIA · Agenda Artistes — v2.3 -->
+<!-- LUMIIA · Agenda Artistes — v2.4 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -116,7 +116,7 @@
   .daterow .who2{font-size:.8rem;color:var(--cyan);font-weight:600}
   .daterow .who2.libre{color:var(--green)}
   .daterow textarea.obs{flex-basis:100%}
-  .btn-ics{background:rgba(34,211,238,.14);color:var(--cyan);border:1px solid rgba(34,211,238,.45);border-radius:9px;padding:8px 12px;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap}
+  .btn-ics{background:rgba(34,211,238,.14);color:var(--cyan);border:1px solid rgba(34,211,238,.45);border-radius:9px;padding:8px 12px;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block}
   .btn-ics:hover{background:rgba(34,211,238,.25)}
   .sendbar{position:sticky;bottom:0;margin:22px -16px -90px;padding:14px 16px calc(14px + env(safe-area-inset-bottom));
     background:linear-gradient(0deg,var(--bg) 60%,transparent);}
@@ -157,7 +157,7 @@
   .sheet textarea{width:100%;background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:10px;
     padding:11px;font-size:.95rem;font-family:inherit;resize:vertical;min-height:60px;margin-bottom:14px}
   .sheet .row{display:flex;gap:10px;flex-wrap:wrap}
-  .sheet button{flex:1;min-width:120px;border:0;border-radius:11px;padding:14px;font-size:.98rem;font-weight:800;cursor:pointer}
+  .sheet .row button,.sheet .row a{flex:1;min-width:120px;border:0;border-radius:11px;padding:14px;font-size:.98rem;font-weight:800;cursor:pointer;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center}
   .b-go{background:var(--green);color:#04210f} .b-ics{background:rgba(34,211,238,.16);color:var(--cyan);border:1px solid rgba(34,211,238,.5)!important}
   .b-free{background:rgba(251,113,133,.16);color:var(--red);border:1px solid rgba(251,113,133,.5)!important}
   .b-close{background:var(--card2);color:var(--muted)}
@@ -192,7 +192,7 @@ const firebaseConfig = {
   appId: "1:823919513931:web:6f6f3c7c6d1699457b18ce"
 };
 
-const VERSION = "v2.3";
+const VERSION = "v2.4";
 const ROOT = "agenda_artistes";
 
 const app = initializeApp(firebaseConfig);
@@ -272,12 +272,9 @@ function buildICS(ymd, djId){
     "END:VEVENT","END:VCALENDAR"
   ].join("\r\n");
 }
-function downloadICS(ymd, djId){
-  const blob=new Blob([buildICS(ymd,djId)],{type:"text/calendar;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a"); a.href=url; a.download=`lumiia-${ymd}.ics`;
-  document.body.appendChild(a); a.click();
-  setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); }, 1500); // Firefox : garder l'URL le temps du téléchargement
+// Lien de téléchargement natif (fiable sur tous les navigateurs, Firefox inclus)
+function icsHref(ymd, djId){
+  return "data:text/calendar;charset=utf-8," + encodeURIComponent(buildICS(ymd, djId));
 }
 
 let toastT;
@@ -393,7 +390,7 @@ function openDatePopup(ymd){
     body+=`<p class="stat m">🎧 Tu joues ce soir-là</p>
       <textarea id="popObs" placeholder="Une remarque (style, matériel, horaire…)">${esc(DATA.observations[ymd]||"")}</textarea>
       <div class="row">
-        <button class="b-ics" data-ics="${ymd}">📅 Mon agenda (.ics)</button>
+        <a class="b-ics" href="${icsHref(ymd,myDjId)}" download="lumiia-${ymd}.ics">📅 Mon agenda (.ics)</a>
         <button class="b-free" data-free="${ymd}">Me désinscrire</button>
       </div>`;
   } else {
@@ -422,8 +419,6 @@ function openDatePopup(ymd){
     pending.add(d); closePopup(); render();
     fbRemove(`inscriptions/${d}`); fbRemove(`observations/${d}`); toast("Date libérée");
   });
-  const ic=sheet.querySelector("[data-ics]");
-  if(ic) ic.addEventListener("click",()=>downloadICS(ic.dataset.ics, myDjId));
   const obs=sheet.querySelector("#popObs");
   if(obs) obs.addEventListener("change",()=>{
     const val=obs.value.trim();
@@ -462,7 +457,7 @@ function renderAdmin(){
       html+=`<div class="daterow">
         <span class="dd">${fmtDateLong(d)}<small>${occ?"":"libre"}</small></span>
         <span class="who2 ${occ?"":"libre"}">${occ?esc(djNom(occ)):"—"}</span>
-        ${occ?`<button class="btn-ics" data-ics="${d}">📅 .ics</button>`:""}
+        ${occ?`<a class="btn-ics" href="${icsHref(d,occ)}" download="lumiia-${d}.ics">📅 .ics</a>`:""}
         <textarea class="obs" data-obs="${d}" placeholder="Observation sur cette date">${esc(DATA.observations[d]||"")}</textarea>
       </div>`;
     }
@@ -500,7 +495,6 @@ function bindAdmin(){
     val ? fbSet("observation_generale",val) : fbRemove("observation_generale");
     toast("Observation générale enregistrée");
   });
-  appEl.querySelectorAll("[data-ics]").forEach(b=>b.addEventListener("click",()=>downloadICS(b.dataset.ics, DATA.inscriptions[b.dataset.ics])));
   appEl.querySelectorAll("textarea[data-obs]").forEach(t=>t.addEventListener("change",()=>{
     const d=t.dataset.obs, val=t.value.trim();
     val ? fbSet(`observations/${d}`,val) : fbRemove(`observations/${d}`);
