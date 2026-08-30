@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LUMIIA · Agenda Artistes — v4.4 -->
+<!-- LUMIIA · Agenda Artistes — v4.5 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -223,7 +223,7 @@
 <header>
   <div class="bar">
     <img class="logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9Ijk2IiBmaWxsPSIjMGIwYTFmIi8+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIxNTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhiNWNmNiIgc3Ryb2tlLXdpZHRoPSIyMiIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iNTQiIGZpbGw9IiMyMmQzZWUiLz48Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjIwIiBmaWxsPSIjMGIwYTFmIi8+PC9zdmc+" alt="">
-    <h1>Soirées DJ<small>LUMIIA · Automne 2026 · <span class="ver" id="ver">v4.4</span></small></h1>
+    <h1>Soirées DJ<small>LUMIIA · Automne 2026 · <span class="ver" id="ver">v4.5</span></small></h1>
     <span class="conn" id="conn" title="État de la connexion"><i class="dotc"></i><span id="connTxt">…</span></span>
     <button class="gear" id="gear" title="Espace organisateur">⚙</button>
   </div>
@@ -249,7 +249,7 @@ const firebaseConfig = {
   appId: "1:823919513931:web:6f6f3c7c6d1699457b18ce"
 };
 
-const VERSION = "v4.4";
+const VERSION = "v4.5";
 const ROOT = "agenda_artistes";
 const urlCode = (new URLSearchParams(location.search).get("code")||"").trim();
 const isAdminUrl = new URLSearchParams(location.search).has("admin");
@@ -302,10 +302,13 @@ onValue(ref(db, ROOT), snap=>{
   // Identification automatique via ?code=... dans le lien (une seule tentative)
   if(!urlCodeTried && urlCode){
     urlCodeTried = true;
-    if(!myDjId || !DATA.djs[myDjId]){
-      const found = Object.keys(DATA.codes).find(id=>DATA.djs[id] && String(DATA.codes[id]).trim().toLowerCase()===urlCode.toLowerCase());
-      if(found){ myDjId=found; localStorage.setItem("agenda_artistes_me",myDjId);
-        history.replaceState(null,"",encodeURIComponent(urlCode)); }  // URL propre : /agenda-artistes/CODE
+    const found = Object.keys(DATA.codes).find(id=>DATA.djs[id] && String(DATA.codes[id]).trim().toLowerCase()===urlCode.toLowerCase());
+    if(found){
+      myDjId=found; localStorage.setItem("agenda_artistes_me",myDjId);   // le lien prime toujours
+      history.replaceState(null,"",encodeURIComponent(urlCode));         // URL propre : /agenda-artistes/CODE
+    } else {
+      // code du lien inconnu : on n'endosse pas une ancienne identité
+      myDjId=""; localStorage.removeItem("agenda_artistes_me");
     }
   }
   render();
