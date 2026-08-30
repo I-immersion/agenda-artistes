@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LUMIIA · Agenda Artistes — v3.2 -->
+<!-- LUMIIA · Agenda Artistes — v3.3 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -125,6 +125,9 @@
   .daterow .who2{font-size:.8rem;color:var(--cyan);font-weight:600}
   .daterow .who2.libre{color:var(--green)}
   .daterow select.assign{background:var(--bg2);color:var(--ink);border:1px solid var(--cyan);border-radius:9px;padding:9px 10px;font-size:.9rem;font-weight:600;min-width:130px}
+  .daterow .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .daterow .chip{display:inline-flex;align-items:center;gap:6px;background:rgba(251,191,36,.18);border:1px solid var(--amber);color:var(--ink);border-radius:999px;padding:4px 6px 4px 11px;font-size:.82rem;font-weight:600}
+  .daterow .chip .chipx{background:none;border:0;color:var(--red);cursor:pointer;font-size:.85rem;padding:0 2px;line-height:1}
   .daterow textarea.obs{flex-basis:100%}
   .sendbar{position:sticky;bottom:0;margin:22px -16px -90px;padding:14px 16px calc(14px + env(safe-area-inset-bottom));
     background:linear-gradient(0deg,var(--bg) 60%,transparent);}
@@ -181,7 +184,7 @@
 <header>
   <div class="bar">
     <img class="logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9Ijk2IiBmaWxsPSIjMGIwYTFmIi8+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIxNTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhiNWNmNiIgc3Ryb2tlLXdpZHRoPSIyMiIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iNTQiIGZpbGw9IiMyMmQzZWUiLz48Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjIwIiBmaWxsPSIjMGIwYTFmIi8+PC9zdmc+" alt="">
-    <h1>Soirées DJ<small>LUMIIA · Automne 2026 · <span class="ver" id="ver">v3.2</span></small></h1>
+    <h1>Soirées DJ<small>LUMIIA · Automne 2026 · <span class="ver" id="ver">v3.3</span></small></h1>
     <span class="conn" id="conn" title="État de la connexion"><i class="dotc"></i><span id="connTxt">…</span></span>
     <button class="gear" id="gear" title="Espace organisateur">⚙</button>
   </div>
@@ -206,7 +209,7 @@ const firebaseConfig = {
   appId: "1:823919513931:web:6f6f3c7c6d1699457b18ce"
 };
 
-const VERSION = "v3.2";
+const VERSION = "v3.3";
 const ROOT = "agenda_artistes";
 const QR_SVG = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0nMS4wJyBlbmNvZGluZz0nVVRGLTgnPz4KPHN2ZyB3aWR0aD0iMzdtbSIgaGVpZ2h0PSIzN21tIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCAzNyAzNyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmZmZmZmIi8+PHBhdGggZD0iTTIsMkgzVjNIMnpNMywySDRWM0gzek00LDJINVYzSDR6TTUsMkg2VjNINXpNNiwySDdWM0g2ek03LDJIOFYzSDd6TTgsMkg5VjNIOHpNMTAsMkgxMVYzSDEwek0xMiwySDEzVjNIMTJ6TTEzLDJIMTRWM0gxM3pNMTUsMkgxNlYzSDE1ek0xOSwySDIwVjNIMTl6TTIwLDJIMjFWM0gyMHpNMjEsMkgyMlYzSDIxek0yMiwySDIzVjNIMjJ6TTIzLDJIMjRWM0gyM3pNMjUsMkgyNlYzSDI1ek0yOCwySDI5VjNIMjh6TTI5LDJIMzBWM0gyOXpNMzAsMkgzMVYzSDMwek0zMSwySDMyVjNIMzF6TTMyLDJIMzNWM0gzMnpNMzMsMkgzNFYzSDMzek0zNCwySDM1VjNIMzR6TTIsM0gzVjRIMnpNOCwzSDlWNEg4ek0xMCwzSDExVjRIMTB6TTEzLDNIMTRWNEgxM3pNMTUsM0gxNlY0SDE1ek0xOCwzSDE5VjRIMTh6TTIwLDNIMjFWNEgyMHpNMjMsM0gyNFY0SDIzek0yNSwzSDI2VjRIMjV6TTI2LDNIMjdWNEgyNnpNMjgsM0gyOVY0SDI4ek0zNCwzSDM1VjRIMzR6TTIsNEgzVjVIMnpNNCw0SDVWNUg0ek01LDRINlY1SDV6TTYsNEg3VjVINnpNOCw0SDlWNUg4ek0xMSw0SDEyVjVIMTF6TTEzLDRIMTRWNUgxM3pNMTQsNEgxNVY1SDE0ek0xNyw0SDE4VjVIMTd6TTE5LDRIMjBWNUgxOXpNMjIsNEgyM1Y1SDIyek0yNiw0SDI3VjVIMjZ6TTI4LDRIMjlWNUgyOHpNMzAsNEgzMVY1SDMwek0zMSw0SDMyVjVIMzF6TTMyLDRIMzNWNUgzMnpNMzQsNEgzNVY1SDM0ek0yLDVIM1Y2SDJ6TTQsNUg1VjZINHpNNSw1SDZWNkg1ek02LDVIN1Y2SDZ6TTgsNUg5VjZIOHpNMTAsNUgxMVY2SDEwek0xMSw1SDEyVjZIMTF6TTEzLDVIMTRWNkgxM3pNMTQsNUgxNVY2SDE0ek0xNiw1SDE3VjZIMTZ6TTE4LDVIMTlWNkgxOHpNMjIsNUgyM1Y2SDIyek0yNSw1SDI2VjZIMjV6TTI4LDVIMjlWNkgyOHpNMzAsNUgzMVY2SDMwek0zMSw1SDMyVjZIMzF6TTMyLDVIMzNWNkgzMnpNMzQsNUgzNVY2SDM0ek0yLDZIM1Y3SDJ6TTQsNkg1VjdINHpNNSw2SDZWN0g1ek02LDZIN1Y3SDZ6TTgsNkg5VjdIOHpNMTMsNkgxNFY3SDEzek0xNCw2SDE1VjdIMTR6TTE1LDZIMTZWN0gxNXpNMTYsNkgxN1Y3SDE2ek0yMiw2SDIzVjdIMjJ6TTI2LDZIMjdWN0gyNnpNMjgsNkgyOVY3SDI4ek0zMCw2SDMxVjdIMzB6TTMxLDZIMzJWN0gzMXpNMzIsNkgzM1Y3SDMyek0zNCw2SDM1VjdIMzR6TTIsN0gzVjhIMnpNOCw3SDlWOEg4ek0xMyw3SDE0VjhIMTN6TTE0LDdIMTVWOEgxNHpNMTYsN0gxN1Y4SDE2ek0yMSw3SDIyVjhIMjF6TTIyLDdIMjNWOEgyMnpNMjYsN0gyN1Y4SDI2ek0yOCw3SDI5VjhIMjh6TTM0LDdIMzVWOEgzNHpNMiw4SDNWOUgyek0zLDhINFY5SDN6TTQsOEg1VjlINHpNNSw4SDZWOUg1ek02LDhIN1Y5SDZ6TTcsOEg4VjlIN3pNOCw4SDlWOUg4ek0xMCw4SDExVjlIMTB6TTEyLDhIMTNWOUgxMnpNMTQsOEgxNVY5SDE0ek0xNiw4SDE3VjlIMTZ6TTE4LDhIMTlWOUgxOHpNMjAsOEgyMVY5SDIwek0yMiw4SDIzVjlIMjJ6TTI0LDhIMjVWOUgyNHpNMjYsOEgyN1Y5SDI2ek0yOCw4SDI5VjlIMjh6TTI5LDhIMzBWOUgyOXpNMzAsOEgzMVY5SDMwek0zMSw4SDMyVjlIMzF6TTMyLDhIMzNWOUgzMnpNMzMsOEgzNFY5SDMzek0zNCw4SDM1VjlIMzR6TTEwLDlIMTFWMTBIMTB6TTEyLDlIMTNWMTBIMTJ6TTEzLDlIMTRWMTBIMTN6TTE5LDlIMjBWMTBIMTl6TTIwLDlIMjFWMTBIMjB6TTIyLDlIMjNWMTBIMjJ6TTI0LDlIMjVWMTBIMjR6TTI1LDlIMjZWMTBIMjV6TTI2LDlIMjdWMTBIMjZ6TTIsMTBIM1YxMUgyek00LDEwSDVWMTFINHpNNSwxMEg2VjExSDV6TTcsMTBIOFYxMUg3ek04LDEwSDlWMTFIOHpNOSwxMEgxMFYxMUg5ek0xMiwxMEgxM1YxMUgxMnpNMTYsMTBIMTdWMTFIMTZ6TTE4LDEwSDE5VjExSDE4ek0xOSwxMEgyMFYxMUgxOXpNMjAsMTBIMjFWMTFIMjB6TTIxLDEwSDIyVjExSDIxek0yMywxMEgyNFYxMUgyM3pNMjgsMTBIMjlWMTFIMjh6TTMxLDEwSDMyVjExSDMxek0zMywxMEgzNFYxMUgzM3pNMzQsMTBIMzVWMTFIMzR6TTIsMTFIM1YxMkgyek00LDExSDVWMTJINHpNNiwxMUg3VjEySDZ6TTEwLDExSDExVjEySDEwek0xMiwxMUgxM1YxMkgxMnpNMTgsMTFIMTlWMTJIMTh6TTIxLDExSDIyVjEySDIxek0yMiwxMUgyM1YxMkgyMnpNMjQsMTFIMjVWMTJIMjR6TTI1LDExSDI2VjEySDI1ek0yOCwxMUgyOVYxMkgyOHpNMjksMTFIMzBWMTJIMjl6TTMxLDExSDMyVjEySDMxek0zMiwxMUgzM1YxMkgzMnpNMzQsMTFIMzVWMTJIMzR6TTIsMTJIM1YxM0gyek00LDEySDVWMTNINHpNNSwxMkg2VjEzSDV6TTYsMTJIN1YxM0g2ek03LDEySDhWMTNIN3pNOCwxMkg5VjEzSDh6TTEwLDEySDExVjEzSDEwek0xNiwxMkgxN1YxM0gxNnpNMTgsMTJIMTlWMTNIMTh6TTE5LDEySDIwVjEzSDE5ek0yMiwxMkgyM1YxM0gyMnpNMjMsMTJIMjRWMTNIMjN6TTI0LDEySDI1VjEzSDI0ek0yNSwxMkgyNlYxM0gyNXpNMjYsMTJIMjdWMTNIMjZ6TTI4LDEySDI5VjEzSDI4ek0yOSwxMkgzMFYxM0gyOXpNMzAsMTJIMzFWMTNIMzB6TTMxLDEySDMyVjEzSDMxek0zMywxMkgzNFYxM0gzM3pNMzQsMTJIMzVWMTNIMzR6TTIsMTNIM1YxNEgyek05LDEzSDEwVjE0SDl6TTExLDEzSDEyVjE0SDExek0xMywxM0gxNFYxNEgxM3pNMTUsMTNIMTZWMTRIMTV6TTE2LDEzSDE3VjE0SDE2ek0xOCwxM0gxOVYxNEgxOHpNMjAsMTNIMjFWMTRIMjB6TTIyLDEzSDIzVjE0SDIyek0yNiwxM0gyN1YxNEgyNnpNMjcsMTNIMjhWMTRIMjd6TTI4LDEzSDI5VjE0SDI4ek0yOSwxM0gzMFYxNEgyOXpNMzEsMTNIMzJWMTRIMzF6TTIsMTRIM1YxNUgyek0zLDE0SDRWMTVIM3pNNCwxNEg1VjE1SDR6TTUsMTRINlYxNUg1ek03LDE0SDhWMTVIN3pNOCwxNEg5VjE1SDh6TTEwLDE0SDExVjE1SDEwek0xMiwxNEgxM1YxNUgxMnpNMTMsMTRIMTRWMTVIMTN6TTIwLDE0SDIxVjE1SDIwek0yMSwxNEgyMlYxNUgyMXpNMjMsMTRIMjRWMTVIMjN6TTI1LDE0SDI2VjE1SDI1ek0yNiwxNEgyN1YxNUgyNnpNMjcsMTRIMjhWMTVIMjd6TTMwLDE0SDMxVjE1SDMwek0zMSwxNEgzMlYxNUgzMXpNMzMsMTRIMzRWMTVIMzN6TTQsMTVINVYxNkg0ek01LDE1SDZWMTZINXpNNywxNUg4VjE2SDd6TTE0LDE1SDE1VjE2SDE0ek0xOCwxNUgxOVYxNkgxOHpNMTksMTVIMjBWMTZIMTl6TTIwLDE1SDIxVjE2SDIwek0yNiwxNUgyN1YxNkgyNnpNMjcsMTVIMjhWMTZIMjd6TTI5LDE1SDMwVjE2SDI5ek0zMiwxNUgzM1YxNkgzMnpNMzMsMTVIMzRWMTZIMzN6TTMsMTZINFYxN0gzek04LDE2SDlWMTdIOHpNOSwxNkgxMFYxN0g5ek0xMSwxNkgxMlYxN0gxMXpNMTIsMTZIMTNWMTdIMTJ6TTE0LDE2SDE1VjE3SDE0ek0xNSwxNkgxNlYxN0gxNXpNMTYsMTZIMTdWMTdIMTZ6TTE3LDE2SDE4VjE3SDE3ek0xOCwxNkgxOVYxN0gxOHpNMjAsMTZIMjFWMTdIMjB6TTIzLDE2SDI0VjE3SDIzek0yNCwxNkgyNVYxN0gyNHpNMjgsMTZIMjlWMTdIMjh6TTI5LDE2SDMwVjE3SDI5ek0zMCwxNkgzMVYxN0gzMHpNMzIsMTZIMzNWMTdIMzJ6TTIsMTdIM1YxOEgyek0zLDE3SDRWMThIM3pNNCwxN0g1VjE4SDR6TTUsMTdINlYxOEg1ek02LDE3SDdWMThINnpNNywxN0g4VjE4SDd6TTExLDE3SDEyVjE4SDExek0xNCwxN0gxNVYxOEgxNHpNMTgsMTdIMTlWMThIMTh6TTIwLDE3SDIxVjE4SDIwek0yMSwxN0gyMlYxOEgyMXpNMjIsMTdIMjNWMThIMjJ6TTIzLDE3SDI0VjE4SDIzek0yNywxN0gyOFYxOEgyN3pNMjgsMTdIMjlWMThIMjh6TTI5LDE3SDMwVjE4SDI5ek0zMSwxN0gzMlYxOEgzMXpNMzIsMTdIMzNWMThIMzJ6TTUsMThINlYxOUg1ek04LDE4SDlWMTlIOHpNOSwxOEgxMFYxOUg5ek0xMCwxOEgxMVYxOUgxMHpNMTEsMThIMTJWMTlIMTF6TTEyLDE4SDEzVjE5SDEyek0xNSwxOEgxNlYxOUgxNXpNMTcsMThIMThWMTlIMTd6TTIwLDE4SDIxVjE5SDIwek0yMSwxOEgyMlYxOUgyMXpNMjIsMThIMjNWMTlIMjJ6TTIzLDE4SDI0VjE5SDIzek0yNCwxOEgyNVYxOUgyNHpNMjUsMThIMjZWMTlIMjV6TTI3LDE4SDI4VjE5SDI3ek0yOCwxOEgyOVYxOUgyOHpNMzAsMThIMzFWMTlIMzB6TTMxLDE4SDMyVjE5SDMxek0zMiwxOEgzM1YxOUgzMnpNNSwxOUg2VjIwSDV6TTksMTlIMTBWMjBIOXpNMTQsMTlIMTVWMjBIMTR6TTE1LDE5SDE2VjIwSDE1ek0xNiwxOUgxN1YyMEgxNnpNMTcsMTlIMThWMjBIMTd6TTE5LDE5SDIwVjIwSDE5ek0yMywxOUgyNFYyMEgyM3pNMjUsMTlIMjZWMjBIMjV6TTI2LDE5SDI3VjIwSDI2ek0yNywxOUgyOFYyMEgyN3pNMjgsMTlIMjlWMjBIMjh6TTMwLDE5SDMxVjIwSDMwek0zMSwxOUgzMlYyMEgzMXpNMzMsMTlIMzRWMjBIMzN6TTM0LDE5SDM1VjIwSDM0ek0yLDIwSDNWMjFIMnpNMywyMEg0VjIxSDN6TTcsMjBIOFYyMUg3ek04LDIwSDlWMjFIOHpNOSwyMEgxMFYyMUg5ek0xMCwyMEgxMVYyMUgxMHpNMTEsMjBIMTJWMjFIMTF6TTEzLDIwSDE0VjIxSDEzek0xNCwyMEgxNVYyMUgxNHpNMTUsMjBIMTZWMjFIMTV6TTE2LDIwSDE3VjIxSDE2ek0xNywyMEgxOFYyMUgxN3pNMTksMjBIMjBWMjFIMTl6TTI0LDIwSDI1VjIxSDI0ek0yNywyMEgyOFYyMUgyN3pNMjksMjBIMzBWMjFIMjl6TTMwLDIwSDMxVjIxSDMwek0zMiwyMEgzM1YyMUgzMnpNMzMsMjBIMzRWMjFIMzN6TTIsMjFIM1YyMkgyek0zLDIxSDRWMjJIM3pNNSwyMUg2VjIySDV6TTcsMjFIOFYyMkg3ek0xMCwyMUgxMVYyMkgxMHpNMTEsMjFIMTJWMjJIMTF6TTEyLDIxSDEzVjIySDEyek0xNSwyMUgxNlYyMkgxNXpNMTYsMjFIMTdWMjJIMTZ6TTE3LDIxSDE4VjIySDE3ek0xOCwyMUgxOVYyMkgxOHpNMjEsMjFIMjJWMjJIMjF6TTIzLDIxSDI0VjIySDIzek0yNSwyMUgyNlYyMkgyNXpNMjgsMjFIMjlWMjJIMjh6TTMwLDIxSDMxVjIySDMwek0zMywyMUgzNFYyMkgzM3pNMiwyMkgzVjIzSDJ6TTQsMjJINVYyM0g0ek03LDIySDhWMjNIN3pNOCwyMkg5VjIzSDh6TTEwLDIySDExVjIzSDEwek0xMSwyMkgxMlYyM0gxMXpNMTMsMjJIMTRWMjNIMTN6TTE0LDIySDE1VjIzSDE0ek0xNSwyMkgxNlYyM0gxNXpNMTcsMjJIMThWMjNIMTd6TTIwLDIySDIxVjIzSDIwek0yMiwyMkgyM1YyM0gyMnpNMjUsMjJIMjZWMjNIMjV6TTI2LDIySDI3VjIzSDI2ek0zMSwyMkgzMlYyM0gzMXpNMzIsMjJIMzNWMjNIMzJ6TTIsMjNIM1YyNEgyek00LDIzSDVWMjRINHpNNywyM0g4VjI0SDd6TTksMjNIMTBWMjRIOXpNMTAsMjNIMTFWMjRIMTB6TTE0LDIzSDE1VjI0SDE0ek0xNywyM0gxOFYyNEgxN3pNMTksMjNIMjBWMjRIMTl6TTIwLDIzSDIxVjI0SDIwek0yMywyM0gyNFYyNEgyM3pNMjUsMjNIMjZWMjRIMjV6TTI4LDIzSDI5VjI0SDI4ek0zMSwyM0gzMlYyNEgzMXpNMzIsMjNIMzNWMjRIMzJ6TTM0LDIzSDM1VjI0SDM0ek00LDI0SDVWMjVINHpNNSwyNEg2VjI1SDV6TTYsMjRIN1YyNUg2ek04LDI0SDlWMjVIOHpNOSwyNEgxMFYyNUg5ek0xMCwyNEgxMVYyNUgxMHpNMTEsMjRIMTJWMjVIMTF6TTEzLDI0SDE0VjI1SDEzek0xNSwyNEgxNlYyNUgxNXpNMTYsMjRIMTdWMjVIMTZ6TTE4LDI0SDE5VjI1SDE4ek0xOSwyNEgyMFYyNUgxOXpNMjMsMjRIMjRWMjVIMjN6TTI1LDI0SDI2VjI1SDI1ek0yNiwyNEgyN1YyNUgyNnpNMjksMjRIMzBWMjVIMjl6TTMxLDI0SDMyVjI1SDMxek0zMywyNEgzNFYyNUgzM3pNMzQsMjRIMzVWMjVIMzR6TTMsMjVINFYyNkgzek03LDI1SDhWMjZIN3pNOSwyNUgxMFYyNkg5ek0xMCwyNUgxMVYyNkgxMHpNMTIsMjVIMTNWMjZIMTJ6TTEzLDI1SDE0VjI2SDEzek0xNCwyNUgxNVYyNkgxNHpNMTUsMjVIMTZWMjZIMTV6TTE2LDI1SDE3VjI2SDE2ek0xOCwyNUgxOVYyNkgxOHpNMjEsMjVIMjJWMjZIMjF6TTI1LDI1SDI2VjI2SDI1ek0yOSwyNUgzMFYyNkgyOXpNMzEsMjVIMzJWMjZIMzF6TTMzLDI1SDM0VjI2SDMzek0zNCwyNUgzNVYyNkgzNHpNMiwyNkgzVjI3SDJ6TTQsMjZINVYyN0g0ek01LDI2SDZWMjdINXpNOCwyNkg5VjI3SDh6TTksMjZIMTBWMjdIOXpNMTAsMjZIMTFWMjdIMTB6TTExLDI2SDEyVjI3SDExek0xMiwyNkgxM1YyN0gxMnpNMTQsMjZIMTVWMjdIMTR6TTE2LDI2SDE3VjI3SDE2ek0xNywyNkgxOFYyN0gxN3pNMTksMjZIMjBWMjdIMTl6TTI0LDI2SDI1VjI3SDI0ek0yNiwyNkgyN1YyN0gyNnpNMjcsMjZIMjhWMjdIMjd6TTI4LDI2SDI5VjI3SDI4ek0yOSwyNkgzMFYyN0gyOXpNMzAsMjZIMzFWMjdIMzB6TTMzLDI2SDM0VjI3SDMzek0zNCwyNkgzNVYyN0gzNHpNMTAsMjdIMTFWMjhIMTB6TTEyLDI3SDEzVjI4SDEyek0xNywyN0gxOFYyOEgxN3pNMTksMjdIMjBWMjhIMTl6TTIwLDI3SDIxVjI4SDIwek0yMSwyN0gyMlYyOEgyMXpNMjUsMjdIMjZWMjhIMjV6TTI2LDI3SDI3VjI4SDI2ek0zMCwyN0gzMVYyOEgzMHpNMzEsMjdIMzJWMjhIMzF6TTIsMjhIM1YyOUgyek0zLDI4SDRWMjlIM3pNNCwyOEg1VjI5SDR6TTUsMjhINlYyOUg1ek02LDI4SDdWMjlINnpNNywyOEg4VjI5SDd6TTgsMjhIOVYyOUg4ek0xMCwyOEgxMVYyOUgxMHpNMTIsMjhIMTNWMjlIMTJ6TTEzLDI4SDE0VjI5SDEzek0xNCwyOEgxNVYyOUgxNHpNMTUsMjhIMTZWMjlIMTV6TTE4LDI4SDE5VjI5SDE4ek0yMSwyOEgyMlYyOUgyMXpNMjIsMjhIMjNWMjlIMjJ6TTI0LDI4SDI1VjI5SDI0ek0yNSwyOEgyNlYyOUgyNXpNMjYsMjhIMjdWMjlIMjZ6TTI4LDI4SDI5VjI5SDI4ek0zMCwyOEgzMVYyOUgzMHpNMiwyOUgzVjMwSDJ6TTgsMjlIOVYzMEg4ek0xMCwyOUgxMVYzMEgxMHpNMTEsMjlIMTJWMzBIMTF6TTE0LDI5SDE1VjMwSDE0ek0xNSwyOUgxNlYzMEgxNXpNMTYsMjlIMTdWMzBIMTZ6TTIxLDI5SDIyVjMwSDIxek0yMiwyOUgyM1YzMEgyMnpNMjMsMjlIMjRWMzBIMjN6TTI0LDI5SDI1VjMwSDI0ek0yNSwyOUgyNlYzMEgyNXpNMjYsMjlIMjdWMzBIMjZ6TTMwLDI5SDMxVjMwSDMwek0zMSwyOUgzMlYzMEgzMXpNMzIsMjlIMzNWMzBIMzJ6TTMzLDI5SDM0VjMwSDMzek0yLDMwSDNWMzFIMnpNNCwzMEg1VjMxSDR6TTUsMzBINlYzMUg1ek02LDMwSDdWMzFINnpNOCwzMEg5VjMxSDh6TTExLDMwSDEyVjMxSDExek0xMywzMEgxNFYzMUgxM3pNMTksMzBIMjBWMzFIMTl6TTIxLDMwSDIyVjMxSDIxek0yMiwzMEgyM1YzMUgyMnpNMjUsMzBIMjZWMzFIMjV6TTI2LDMwSDI3VjMxSDI2ek0yNywzMEgyOFYzMUgyN3pNMjgsMzBIMjlWMzFIMjh6TTI5LDMwSDMwVjMxSDI5ek0zMCwzMEgzMVYzMUgzMHpNMzIsMzBIMzNWMzFIMzJ6TTM0LDMwSDM1VjMxSDM0ek0yLDMxSDNWMzJIMnpNNCwzMUg1VjMySDR6TTUsMzFINlYzMkg1ek02LDMxSDdWMzJINnpNOCwzMUg5VjMySDh6TTEwLDMxSDExVjMySDEwek0xMSwzMUgxMlYzMkgxMXpNMTMsMzFIMTRWMzJIMTN6TTE1LDMxSDE2VjMySDE1ek0xNiwzMUgxN1YzMkgxNnpNMjAsMzFIMjFWMzJIMjB6TTIxLDMxSDIyVjMySDIxek0yMiwzMUgyM1YzMkgyMnpNMjMsMzFIMjRWMzJIMjN6TTI1LDMxSDI2VjMySDI1ek0yNywzMUgyOFYzMkgyN3pNMjksMzFIMzBWMzJIMjl6TTMzLDMxSDM0VjMySDMzek0zNCwzMUgzNVYzMkgzNHpNMiwzMkgzVjMzSDJ6TTQsMzJINVYzM0g0ek01LDMySDZWMzNINXpNNiwzMkg3VjMzSDZ6TTgsMzJIOVYzM0g4ek0xMCwzMkgxMVYzM0gxMHpNMTEsMzJIMTJWMzNIMTF6TTE0LDMySDE1VjMzSDE0ek0yMSwzMkgyMlYzM0gyMXpNMjMsMzJIMjRWMzNIMjN6TTI1LDMySDI2VjMzSDI1ek0yOCwzMkgyOVYzM0gyOHpNMjksMzJIMzBWMzNIMjl6TTMxLDMySDMyVjMzSDMxek0zMiwzMkgzM1YzM0gzMnpNMiwzM0gzVjM0SDJ6TTgsMzNIOVYzNEg4ek0xNywzM0gxOFYzNEgxN3pNMTgsMzNIMTlWMzRIMTh6TTE5LDMzSDIwVjM0SDE5ek0yMCwzM0gyMVYzNEgyMHpNMjEsMzNIMjJWMzRIMjF6TTI0LDMzSDI1VjM0SDI0ek0yNiwzM0gyN1YzNEgyNnpNMjksMzNIMzBWMzRIMjl6TTMwLDMzSDMxVjM0SDMwek0zMSwzM0gzMlYzNEgzMXpNMzQsMzNIMzVWMzRIMzR6TTIsMzRIM1YzNUgyek0zLDM0SDRWMzVIM3pNNCwzNEg1VjM1SDR6TTUsMzRINlYzNUg1ek02LDM0SDdWMzVINnpNNywzNEg4VjM1SDd6TTgsMzRIOVYzNUg4ek0xMCwzNEgxMVYzNUgxMHpNMTEsMzRIMTJWMzVIMTF6TTEyLDM0SDEzVjM1SDEyek0xMywzNEgxNFYzNUgxM3pNMTUsMzRIMTZWMzVIMTV6TTE2LDM0SDE3VjM1SDE2ek0xNywzNEgxOFYzNUgxN3pNMTgsMzRIMTlWMzVIMTh6TTE5LDM0SDIwVjM1SDE5ek0yMCwzNEgyMVYzNUgyMHpNMjMsMzRIMjRWMzVIMjN6TTI1LDM0SDI2VjM1SDI1ek0zMCwzNEgzMVYzNUgzMHpNMzIsMzRIMzNWMzVIMzJ6IiBpZD0icXItcGF0aCIgZmlsbD0iIzAwMDAwMCIgZmlsbC1vcGFjaXR5PSIxIiBmaWxsLXJ1bGU9Im5vbnplcm8iIHN0cm9rZT0ibm9uZSIvPjwvc3ZnPg==";
 
@@ -263,6 +266,18 @@ const DOW=["lun","mar","mer","jeu","ven","sam","dim"];
 const SOIREES=[5,6]; // vendredi, samedi
 function estCreneau(dow){ return SOIREES.includes(dow); }
 function djNom(id){ return DATA.djs[id] || "?"; }
+
+const CAP = 2; // nombre de places par date
+function djsOnDate(ymd){
+  const v = DATA.inscriptions[ymd];
+  if(!v) return [];
+  if(typeof v === "string") return [v];   // ancien format (1 seul DJ)
+  return Object.keys(v);                    // map {djId:true}
+}
+function setDjsOnDate(ymd, ids){
+  if(!ids.length) fbRemove(`inscriptions/${ymd}`);
+  else { const m={}; ids.forEach(i=>m[i]=true); fbSet(`inscriptions/${ymd}`, m); }
+}
 
 // Ordre d'affichage personnalisé des artistes (dj_order) — nouveaux ajoutés en fin
 function orderedDjs(){
@@ -322,22 +337,25 @@ function calHTML(monthIdx, mode){
 function cellHTML(ymd, day, creneau, open, occ, mode){
   const num=`<div class="num">${day}</div>`;
   const memo = DATA.observations[ymd] ? `<span class="memo" title="Remarque notée">📝</span>` : "";
+  const ids = djsOnDate(ymd);
+  const noms = ids.map(id=>id===myDjId?"Toi":djNom(id));
   if(mode==="dj"){
     if(creneau && open){
       if(pending.has(ymd)) return `<div class="cell pending">${num}<div class="tag">⏳…</div></div>`;
-      if(occ){
-        if(occ===myDjId) return `<div class="cell mine" data-action="open" data-date="${ymd}">${num}${memo}<div class="tag m">Toi 🎧</div></div>`;
-        return `<div class="cell taken" data-action="open" data-date="${ymd}">${num}${memo}<div class="tag r">${esc(djNom(occ))}</div></div>`;
-      }
-      return `<div class="cell free" data-action="open" data-date="${ymd}">${num}${memo}<div class="tag g">Libre</div></div>`;
+      const jysuis = ids.includes(myDjId), complet = ids.length>=CAP;
+      let cls, tag;
+      if(jysuis){ cls="mine"; tag=`<div class="tag m">${esc(noms.join(", "))} 🎧</div>`; }
+      else if(complet){ cls="taken"; tag=`<div class="tag r">${esc(noms.join(", "))}</div>`; }
+      else { cls="free"; tag=`<div class="tag g">${ids.length?esc(noms.join(", "))+" · 1 pl.":"Libre"}</div>`; }
+      return `<div class="cell ${cls}" data-action="open" data-date="${ymd}">${num}${memo}${tag}</div>`;
     }
     return `<div class="cell day">${num}</div>`;
   }
   // mode admin
   if(creneau){
     if(open){
-      const tag = occ ? `<div class="tag r">${esc(djNom(occ))}</div>` : `<div class="tag g">ouverte</div>`;
-      return `<div class="cell ${occ?"taken":"free"}" data-action="adm" data-date="${ymd}">${num}${memo}${tag}</div>`;
+      const tag = ids.length ? `<div class="tag ${ids.length>=CAP?"r":"g"}">${esc(noms.join(", "))}</div>` : `<div class="tag g">ouverte</div>`;
+      return `<div class="cell ${ids.length>=CAP?"taken":"free"}" data-action="adm" data-date="${ymd}">${num}${memo}${tag}</div>`;
     }
     return `<div class="cell closed" data-action="adm" data-date="${ymd}">${num}<div class="tag x">fermée</div></div>`;
   }
@@ -357,9 +375,9 @@ function renderDj(){
   if(DATA.obsGen) html+=`<div class="obsgen"><div class="lbl">📌 Infos organisateur</div><div class="txt">${esc(DATA.obsGen)}</div></div>`;
 
   html+=`<div class="legend">
-    <span><i class="sw free"></i>Libre</span>
-    <span><i class="sw taken"></i>Réservée</span>
-    <span><i class="sw mine"></i>Ta date</span></div>`;
+    <span><i class="sw free"></i>Place libre</span>
+    <span><i class="sw taken"></i>Complet</span>
+    <span><i class="sw mine"></i>Tu joues</span></div>`;
 
   const anyOpen=Object.keys(DATA.dates).length>0;
   if(!anyOpen){
@@ -399,23 +417,21 @@ function bindDj(){
 
 // ---------- Popup d'une date (v2.2) ----------
 function openDatePopup(ymd){
-  const occ=DATA.inscriptions[ymd];
   const sheet=document.getElementById("sheet");
-  const qui = occ ? esc(djNom(occ))+" : " : "";
-  const note = DATA.observations[ymd] ? `<p class="note popnote">📝 ${qui}« ${esc(DATA.observations[ymd])} »</p>` : "";
+  const ids = djsOnDate(ymd);
+  const jysuis = ids.includes(myDjId), complet = ids.length>=CAP, libres = CAP - ids.length;
+  const note = DATA.observations[ymd] ? `<p class="note popnote">📝 « ${esc(DATA.observations[ymd])} »</p>` : "";
   let body=`<h3>${fmtDateLong(ymd)}</h3>`;
 
-  if(!occ){
-    body+=`<p class="stat free">✅ Date libre</p>${note}
-      <div class="row"><button class="b-go" data-go="${ymd}">🎧 M'inscrire sur cette date</button></div>`;
-  } else if(occ===myDjId){
-    body+=`<p class="stat m">🎧 Tu joues ce soir-là</p>
-      <textarea id="popObs" placeholder="Une remarque (style, matériel, horaire…)">${esc(DATA.observations[ymd]||"")}</textarea>
-      <div class="row">
-        <button class="b-free" data-free="${ymd}">Me désinscrire</button>
-      </div>`;
-  } else {
-    body+=`<p class="stat r">🔴 Réservée par ${esc(djNom(occ))}</p>${note}`;
+  if(ids.length) body+=`<p class="stat ${complet?"r":"m"}">🎧 ${ids.map(id=>esc(id===myDjId?"Toi":djNom(id))).join("  ·  ")}</p>`;
+  body+=`<p class="stat ${libres>0?"free":"r"}">${libres>0?`✅ ${libres} place${libres>1?"s":""} libre${libres>1?"s":""}`:"🔴 Complet (2/2)"}</p>`;
+  body+=note;
+
+  if(jysuis){
+    body+=`<textarea id="popObs" placeholder="Une remarque (style, matériel, horaire…)">${esc(DATA.observations[ymd]||"")}</textarea>
+      <div class="row"><button class="b-free" data-free="${ymd}">Me désinscrire</button></div>`;
+  } else if(!complet){
+    body+=`<div class="row"><button class="b-go" data-go="${ymd}">🎧 M'inscrire sur cette date</button></div>`;
   }
   body+=`<div class="row" style="margin-top:10px"><button class="b-close" id="popClose">Valider</button></div>`;
   sheet.innerHTML=body;
@@ -428,16 +444,16 @@ function openDatePopup(ymd){
   });
   const go=sheet.querySelector("[data-go]");
   if(go) go.addEventListener("click",()=>{
-    const d=go.dataset.go;
-    if(DATA.inscriptions[d]){ toast("Trop tard, déjà prise !"); closePopup(); return; }
-    pending.add(d); closePopup(); render();             // case orange immédiate
-    fbSet(`inscriptions/${d}`,myDjId); toast("C'est noté 🎧");
+    const cur=djsOnDate(ymd);
+    if(cur.includes(myDjId)){ closePopup(); return; }
+    if(cur.length>=CAP){ toast("Trop tard, c'est complet !"); closePopup(); return; }
+    pending.add(ymd); closePopup(); render();
+    setDjsOnDate(ymd, [...cur, myDjId]); toast("C'est noté 🎧");
   });
   const fr=sheet.querySelector("[data-free]");
   if(fr) fr.addEventListener("click",()=>{
-    const d=fr.dataset.free;
-    pending.add(d); closePopup(); render();
-    fbRemove(`inscriptions/${d}`); fbRemove(`observations/${d}`); toast("Date libérée");
+    pending.add(ymd); closePopup(); render();
+    setDjsOnDate(ymd, djsOnDate(ymd).filter(i=>i!==myDjId)); toast("Désinscrit");
   });
   const obs=sheet.querySelector("#popObs");
   if(obs) obs.addEventListener("change",()=>{
@@ -485,16 +501,20 @@ function renderAdmin(){
       <p class="note" style="margin:0 0 8px">Assigne l'artiste de ton choix à chaque date, et gère le commentaire.</p>
       <div class="adminbox">`;
     for(const d of aGerer){
-      const occ=DATA.inscriptions[d];
-      const assign = DATA.dates[d]
-        ? `<select class="assign" data-assign="${d}">
-             <option value="">— libre —</option>
-             ${djOptions.map(([id,nm])=>`<option value="${id}" ${occ===id?"selected":""}>${esc(nm)}</option>`).join("")}
-           </select>`
-        : `<span class="who2 libre">date fermée</span>`;
+      const ids = djsOnDate(d);
+      let gestion;
+      if(DATA.dates[d]){
+        const chips = ids.map(id=>`<span class="chip">${esc(djNom(id))}<button class="chipx" data-remove="${d}|${id}">✕</button></span>`).join("");
+        const dispo = djOptions.filter(([id])=>!ids.includes(id));
+        gestion = `<span class="chips">${chips}</span>` + (ids.length<CAP
+          ? `<select class="assign" data-add="${d}"><option value="">+ ajouter…</option>${dispo.map(([id,nm])=>`<option value="${id}">${esc(nm)}</option>`).join("")}</select>`
+          : `<span class="who2 libre">complet</span>`);
+      } else {
+        gestion = `<span class="who2 libre">date fermée</span>`;
+      }
       html+=`<div class="daterow">
-        <span class="dd">${fmtDateLong(d)}<small>${occ?"réservée":(DATA.dates[d]?"libre":"fermée")}</small></span>
-        ${assign}
+        <span class="dd">${fmtDateLong(d)}<small>${ids.length?ids.length+"/"+CAP:(DATA.dates[d]?"libre":"fermée")}</small></span>
+        ${gestion}
         <textarea class="obs" data-obs="${d}" placeholder="Commentaire sur cette date">${esc(DATA.observations[d]||"")}</textarea>
         ${DATA.observations[d]?`<button class="ghost danger" data-clearobs="${d}">✕ Effacer commentaire</button>`:""}
       </div>`;
@@ -546,10 +566,15 @@ function bindAdmin(){
   appEl.querySelectorAll("[data-clearobs]").forEach(b=>b.addEventListener("click",()=>{
     fbRemove(`observations/${b.dataset.clearobs}`); toast("Commentaire effacé");
   }));
-  appEl.querySelectorAll("select[data-assign]").forEach(s=>s.addEventListener("change",()=>{
-    const d=s.dataset.assign, val=s.value;
-    val ? fbSet(`inscriptions/${d}`,val) : fbRemove(`inscriptions/${d}`);
-    toast(val?`${djNom(val)} assigné`:"Date libérée");
+  appEl.querySelectorAll("select[data-add]").forEach(s=>s.addEventListener("change",()=>{
+    const d=s.dataset.add, id=s.value; if(!id) return;
+    const cur=djsOnDate(d);
+    if(cur.includes(id)||cur.length>=CAP){ return; }
+    setDjsOnDate(d,[...cur,id]); toast(`${djNom(id)} assigné`);
+  }));
+  appEl.querySelectorAll("[data-remove]").forEach(b=>b.addEventListener("click",()=>{
+    const [d,id]=b.dataset.remove.split("|");
+    setDjsOnDate(d, djsOnDate(d).filter(i=>i!==id)); toast("Retiré");
   }));
   // Code d'accès par artiste
   appEl.querySelectorAll("input[data-code]").forEach(t=>t.addEventListener("change",()=>{
