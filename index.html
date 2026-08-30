@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LUMIIA · Agenda Artistes — v3.8 -->
+<!-- LUMIIA · Agenda Artistes — v4.0 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -211,15 +211,17 @@
   .cell.guest::after{content:"+ invité";position:absolute;bottom:1px;right:3px;font-size:.46rem;font-weight:700;color:#04210f;background:var(--amber);border-radius:4px;padding:0 3px}
   .guestbox{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:.9rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .guestbox button{margin-left:auto}
-  .b-guest{width:100%;background:var(--card2);color:var(--cyan);border:1px solid var(--cyan);border-radius:11px;padding:12px;font-weight:700;cursor:pointer;margin-bottom:12px}
-  #guestZone input{width:100%;background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:1rem;margin-bottom:10px}
+  .poplbl{display:block;font-size:.82rem;color:var(--muted);font-weight:600;margin-bottom:12px}
+  .poplbl input, .poplbl textarea{display:block;width:100%;margin-top:6px;background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:1rem;font-family:inherit}
+  .poplbl textarea{min-height:60px;resize:vertical}
+  .b-validate{flex:1;background:var(--violet);color:#fff;border:0;border-radius:11px;padding:14px;font-size:1rem;font-weight:800;cursor:pointer}
 </style>
 </head>
 <body>
 <header>
   <div class="bar">
     <img class="logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9Ijk2IiBmaWxsPSIjMGIwYTFmIi8+PGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIxNTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhiNWNmNiIgc3Ryb2tlLXdpZHRoPSIyMiIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iNTQiIGZpbGw9IiMyMmQzZWUiLz48Y2lyY2xlIGN4PSIyNTYiIGN5PSIyNTYiIHI9IjIwIiBmaWxsPSIjMGIwYTFmIi8+PC9zdmc+" alt="">
-    <h1>Soirées DJ<small>LUMIIA · Automne 2026 · <span class="ver" id="ver">v3.8</span></small></h1>
+    <h1>Soirées DJ<small>LUMIIA · Automne 2026 · <span class="ver" id="ver">v4.0</span></small></h1>
     <span class="conn" id="conn" title="État de la connexion"><i class="dotc"></i><span id="connTxt">…</span></span>
     <button class="gear" id="gear" title="Espace organisateur">⚙</button>
   </div>
@@ -245,7 +247,7 @@ const firebaseConfig = {
   appId: "1:823919513931:web:6f6f3c7c6d1699457b18ce"
 };
 
-const VERSION = "v3.8";
+const VERSION = "v4.0";
 const ROOT = "agenda_artistes";
 const urlCode = (new URLSearchParams(location.search).get("code")||"").trim();
 let urlCodeTried = false;
@@ -605,15 +607,17 @@ function openDatePopup(ymd){
     body+=`<p class="stat ${jesuis?"m":"r"}">🎧 ${occs.map(o=>esc(o.label)+(o.invite?" (invité)":"")).join("  ·  ")}</p>`;
     body+=note;
     if(jesuisTitulaire){
-      body+=`<textarea id="popObs" placeholder="Une remarque (style, matériel, horaire…)">${esc(DATA.observations[ymd]||"")}</textarea>`;
+      body+=`<label class="poplbl">Une remarque (style, matériel, horaire…)
+        <textarea id="popObs" placeholder="Optionnel">${esc(DATA.observations[ymd]||"")}</textarea></label>`;
       // Gestion de l'invité
       if(info.dj2){
-        body+=`<p class="note" style="margin:0 0 10px">Un 2ᵉ DJ est prévu par l'organisateur.</p>`;
+        body+=`<p class="note" style="margin:0 0 12px">Un 2ᵉ DJ est prévu par l'organisateur pour cette soirée.</p>`;
       } else if(info.guest){
-        body+=`<div class="guestbox">👤 Invité : <b>${esc(info.guest)}</b>
+        body+=`<div class="guestbox">👤 DJ invité : <b>${esc(info.guest)}</b>
           <button class="ghost danger" data-delguest="${ymd}">Retirer</button></div>`;
       } else {
-        body+=`<div id="guestZone"><button class="b-guest" id="addGuest">➕ Inviter un binôme</button></div>`;
+        body+=`<label class="poplbl">Tu invites un binôme ? <span class="hint2">(optionnel)</span>
+          <input id="guestName" placeholder="Nom du DJ invité" autocomplete="off" maxlength="40"></label>`;
       }
       body+=`<div class="row"><button class="b-free" data-free="${ymd}">Me désinscrire</button></div>`;
     } else if(info.dj2===myDjId){
@@ -621,13 +625,15 @@ function openDatePopup(ymd){
     }
     // sinon : pris par d'autres → lecture seule
   }
-  body+=`<div class="row" style="margin-top:10px"><button class="b-close" id="popClose">Valider</button></div>`;
+  body+=`<div class="row" style="margin-top:12px"><button class="b-validate" id="popClose">✓ Valider</button></div>`;
   sheet.innerHTML=body;
   document.getElementById("modal").classList.add("show");
 
   document.getElementById("popClose").addEventListener("click",()=>{
     const t=sheet.querySelector("#popObs");
     if(t){ const val=t.value.trim(); val ? fbSet(`observations/${ymd}`,val) : fbRemove(`observations/${ymd}`); }
+    const g=sheet.querySelector("#guestName");
+    if(g && g.value.trim()) fbSet(`inscriptions/${ymd}/guest`, g.value.trim());
     closePopup();
   });
   const go=sheet.querySelector("[data-go]");
@@ -650,18 +656,14 @@ function openDatePopup(ymd){
     pending.add(ymd); closePopup(); render();
     fbRemove(`inscriptions/${ymd}/dj2`); toast("Retiré");
   });
-  const ag=sheet.querySelector("#addGuest");
-  if(ag) ag.addEventListener("click",()=>{
-    document.getElementById("guestZone").innerHTML=`<input id="guestName" placeholder="Nom du DJ invité" autocomplete="off" maxlength="40">
-      <button class="b-go" id="guestSave">Valider l'invité</button>`;
-    document.getElementById("guestName").focus();
-    const save=()=>{ const n=document.getElementById("guestName").value.trim();
-      if(!n) return; fbSet(`inscriptions/${ymd}/guest`, n); toast("Invité ajouté"); closePopup(); };
-    document.getElementById("guestSave").addEventListener("click",save);
-    document.getElementById("guestName").addEventListener("keydown",e=>{ if(e.key==="Enter") save(); });
-  });
   const dg=sheet.querySelector("[data-delguest]");
   if(dg) dg.addEventListener("click",()=>{ fbRemove(`inscriptions/${ymd}/guest`); toast("Invité retiré"); closePopup(); });
+  const gn=sheet.querySelector("#guestName");
+  if(gn) gn.addEventListener("change",()=>{
+    const n=gn.value.trim();
+    n ? fbSet(`inscriptions/${ymd}/guest`,n) : fbRemove(`inscriptions/${ymd}/guest`);
+    toast(n?"Invité enregistré 👤":"Invité retiré");
+  });
   const obs=sheet.querySelector("#popObs");
   if(obs) obs.addEventListener("change",()=>{
     const val=obs.value.trim();
